@@ -11,11 +11,26 @@ export const connect = (mapStateToProps, mapActionToProps) => (WrappedComponent)
         const handleRender = () => {
             setState(store.getState());
         }
+
+        const mapDispatchTopProps = () => {
+          let { dispatch } = store;
+          if(typeof mapActionToProps === "function"){
+            return mapActionToProps(dispatch, props)
+          }else if(typeof mapActionToProps === "object"){
+            let obj = {};
+            Object.entries(mapActionToProps).forEach(([key, func]) => {
+              obj[key] = (payload) => dispatch(func(payload))
+            })
+            return obj
+          }else {
+            return ({})
+          }
+        }
       return (
         <WrappedComponent
           {...props}
           {...(mapStateToProps ? mapStateToProps(store.getState(), props) : {})}
-          {...(mapActionToProps ? mapActionToProps(store.dispatch, props) : {})}
+          {...(mapDispatchTopProps())}
         />
       );
     };

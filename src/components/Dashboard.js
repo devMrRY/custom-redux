@@ -2,16 +2,15 @@ import { onUpdateUser } from "../redux/actions/user";
 import { connect } from "./connectHoc";
 import Navbar from "./Navbar";
 
-function Dashboard(props) {
+function Dashboard({ user, onUpdateUser }) {
   const handleClick = () => {
-    let {user} = props;
-    props.updateUser({ count: (user?.count || 0) + 1});
+    onUpdateUser({ count: (user?.count || 0) + 1});
   };
 
   return (
     <>
       <Navbar />
-      {props?.user?.count}
+      {user?.count}
       <button onClick={handleClick}>click</button>
     </>
   );
@@ -28,4 +27,9 @@ const mapActionToProps = (dispatch) => {
     updateUser: (payload) => dispatch(onUpdateUser(payload))
   })
 }
-export default connect(mapStateToProps, mapActionToProps)(Dashboard);
+
+// functional way to bind dispatch to actions
+// export default connect(mapStateToProps, mapActionToProps)(Dashboard);
+
+// object way to bind dispatch to actions
+export default connect(mapStateToProps, {onUpdateUser})(Dashboard);
