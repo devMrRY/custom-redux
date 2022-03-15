@@ -1,6 +1,6 @@
 import React from 'react';
 import { logger, persist, thunk } from './middlewares/logger';
-import userReducer from './reducers/userReducer';
+import reducers from './reducers';
 
 let state = {}
 
@@ -13,7 +13,7 @@ const compose = (arr, args, wrappedFunction) => {
     return () => f(args, compose(arr, args, wrappedFunction));
 }
 
-const enhanceWrapper = (args) => (wrappedFunction) => {
+const enhanceWrapper = (args, middlewares) => (wrappedFunction) => {
     function fun (action) {
         args = { ...args, action, fun};
         compose([thunk, logger, persist], args, wrappedFunction)();
@@ -21,7 +21,7 @@ const enhanceWrapper = (args) => (wrappedFunction) => {
     return fun;
 }
 
-export const createStore = (reducer, initialState, ...enhancer) => {
+export const createStore = (reducer, initialState, middlewares) => {
     let store = {};
     store.state = initialState;
     store.listeners = [];
@@ -33,7 +33,7 @@ export const createStore = (reducer, initialState, ...enhancer) => {
         store.listeners.push(subscriber);
     }
     // function dispatch which updates state and calls all listeners
-    store.dispatch = enhanceWrapper({ getState: store.getState })((action) => {
+    store.dispatch = enhanceWrapper({ getState: store.getState }, middlewares)((action) => {
         store.state = reducer(store.state, action);
         store.listeners.forEach(fn => fn());
     })
@@ -51,7 +51,7 @@ const combineReducers = (reducers) => {
     };
 }
 
-const appReducer = combineReducers({ user: userReducer })
+const appReducer = combineReducers(reducers)
 
 const rootReducer = (state, action) => {
     if(action.type === "LOGOUT"){
@@ -84,7 +84,7 @@ const rootReducer = (state, action) => {
 //     }
 // }
 
-const store = createStore(rootReducer, state, logger, persist)
+const store = createStore(rootReducer, state, [thunk, logger, persist])
 
 const ReduxContext = React.createContext('redux');
 

@@ -7,3 +7,7 @@ export const onUpdateUser = (payload) => (dispatch) => {
         dispatch({ type: 'LOGIN_SUCCESS', payload });
     })
 }
+
+export const onAddProduct = (item) => (dispatch) => {
+    dispatch({ type: 'ADD_PRODUCTS', payload: item });
+}
