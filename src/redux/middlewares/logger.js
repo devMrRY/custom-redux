@@ -1,19 +1,22 @@
 export const logger = (args, next) => {
     let { getState } = args;
     console.log(getState())
-    next(args);
+    next(args)
 }
 
 export const persist = (args, next) => {
     let { getState } = args;
     let state = getState();
     localStorage.setItem("appState", JSON.stringify(state));
-    next(args);
+    next(args)
 }
 
 export const thunk = (args, next) => {
-    let { getState } = args;
-    next(args);
+    let { action, fun} = args;
+    if(typeof action === "function"){
+        return action(fun);
+    }
+    next(args)
 }
 
 // export default function applyMiddleware(...middlewares) {

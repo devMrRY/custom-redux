@@ -4,18 +4,19 @@ import userReducer from './reducers/userReducer';
 
 let state = {}
 
+const compose = (arr, args, wrappedFunction) => {
+    if(!arr || (arr && !arr.length)){
+        return () => wrappedFunction(args.action)
+    }
+    let f = arr[0];
+    arr.splice(0, 1);
+    return () => f(args, compose(arr, args, wrappedFunction));
+}
+
 const enhanceWrapper = (args) => (wrappedFunction) => {
     function fun (action) {
-        thunk(args, () => {
-            if(typeof action === "function"){
-                return action(fun);
-            }
-            logger(args, () => {
-                persist(args, () => {
-                    wrappedFunction(action);
-                })
-            })
-        })
+        args = { ...args, action, fun};
+        compose([thunk, logger, persist], args, wrappedFunction)();
     }
     return fun;
 }
@@ -36,16 +37,6 @@ export const createStore = (reducer, initialState, ...enhancer) => {
         store.state = reducer(store.state, action);
         store.listeners.forEach(fn => fn());
     })
-
-
-
-    // for(let i=0; i<enhancer.length; i++){
-    //     if(i=== enhancer.length-1){
-    //         enhancer[i]({getState: store.getState}, store.dispatch)
-    //     }else{
-    //         enhancer[i]({getState: store.getState}, enhancer[i+1])
-    //     }
-    // }
 
     return store;
 }
@@ -70,29 +61,28 @@ const rootReducer = (state, action) => {
 }
 
 
-const compose = (...funcs) => {
-    if (funcs.length === 0) {
-        return arg => arg
-    }
+// const compose = (...funcs) => {
+//     if (funcs.length === 0) {
+//         return arg => arg
+//     }
   
-    if (funcs.length === 1) {
-      return funcs[0]
-    }
+//     if (funcs.length === 1) {
+//       return funcs[0]
+//     }
     
-    return funcs.reduce((a, b) => (...args) => a(b(...args)))
-}
+//     return funcs.reduce((a, b) => (...args) => a(b(...args)))
+// }
 
-const applyMiddlewares = (...middlewares) => {
-    return (createStore) => (reducer, preloadedState) => {
-        const store = createStore(reducer, preloadedState)
-        console.log(createStore, reducer, preloadedState, store)
-        const middleWareArgs = {
-            getState: store.getState(),
-            dispatch: store.dispatch,
-        }
-        return middlewares.map(middleware => middleware(middleWareArgs))
-    }
-}
+// const applyMiddlewares = (...middlewares) => {
+//     return (createStore) => (reducer, preloadedState) => {
+//         const store = createStore(reducer, preloadedState)
+//         const middleWareArgs = {
+//             getState: store.getState(),
+//             dispatch: store.dispatch,
+//         }
+//         return middlewares.map(middleware => middleware(middleWareArgs))
+//     }
+// }
 
 const store = createStore(rootReducer, state, logger, persist)
 
