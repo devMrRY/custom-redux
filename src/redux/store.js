@@ -23,7 +23,7 @@ const enhanceWrapper = (args, middlewares) => (wrappedFunction) => {
 
 export const createStore = (reducer, initialState, middlewares) => {
     let store = {};
-    store.state = initialState;
+    store.state = JSON.parse(localStorage.getItem("appState")) || initialState;
     store.listeners = [];
     
     // function to get state
@@ -37,6 +37,8 @@ export const createStore = (reducer, initialState, middlewares) => {
         store.state = reducer(store.state, action);
         store.listeners.forEach(fn => fn());
     })
+
+    store.dispatch({})
 
     return store;
 }
